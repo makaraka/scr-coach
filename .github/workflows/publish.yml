@@ -26,11 +26,38 @@ jobs:
       - name: Build & Push (multi services)
         run: |
           set -e
-          REPO_LC=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          REPO="${{ github.repository }}"
+          REPO_LC=$(echo "${REPO}" | tr '[:upper:]' '[:lower:]')
           SHORT_SHA=${GITHUB_SHA::7}
           for SVC in vision coach yt_ingest; do
             docker buildx build $SVC \
               -t ghcr.io/${REPO_LC}/$SVC:latest \
               -t ghcr.io/${REPO_LC}/$SVC:${SHORT_SHA} \
               --push
+          done
+
+      - name: Make packages public
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          REPO="${{ github.repository }}"
+          OWNER="${{ github.repository_owner }}"
+          REPO_LC=$(echo "${REPO}" | tr '[:upper:]' '[:lower:]')
+          REPO_NAME_LC=$(echo "${REPO_LC}" | cut -d'/' -f2)
+          OWNER_TYPE=$(gh api graphql -f query='query($login: String!) { repositoryOwner(login: $login) { __typename } }' -f login="$OWNER" --jq '.data.repositoryOwner.__typename')
+
+          for SVC in vision coach yt_ingest; do
+            PACKAGE_NAME="$REPO_NAME_LC/$SVC"
+            ENCODED_PACKAGE=$(printf '%s' "$PACKAGE_NAME" | jq -sRr @uri)
+
+            if [ "$OWNER_TYPE" = "Organization" ]; then
+              gh api -X PATCH -H "Accept: application/vnd.github+json" \
+                "/orgs/$OWNER/packages/container/$ENCODED_PACKAGE/visibility" \
+                -f visibility=public
+            else
+              gh api -X PATCH -H "Accept: application/vnd.github+json" \
+                "/user/packages/container/$ENCODED_PACKAGE/visibility" \
+                -f visibility=public
+            fi
           done
