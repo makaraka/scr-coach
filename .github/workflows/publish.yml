@@ -26,11 +26,11 @@ jobs:
       - name: Build & Push (multi services)
         run: |
           set -e
-          REPO_LC=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           SHORT_SHA=${GITHUB_SHA::7}
           for SVC in vision coach yt_ingest; do
             docker buildx build $SVC \
-              -t ghcr.io/${REPO_LC}/$SVC:latest \
-              -t ghcr.io/${REPO_LC}/$SVC:${SHORT_SHA} \
+              -t ghcr.io/${OWNER_LC}/$SVC:latest \
+              -t ghcr.io/${OWNER_LC}/$SVC:${SHORT_SHA} \
               --push
           done
