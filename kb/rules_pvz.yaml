@@ -1,0 +1,6 @@
+- name: "Pre-first-corsair danger"
+  window: { start: "04:30", end: "06:30" }
+  trigger: { race_us: "P", race_enemy: "Z" }
+  advise:
+    - "캐논 +1, 정찰 유지, 질럿/프로브로 벽 보강"
+    - "질럿 발업이 늦으면 히드라/링 브레이크 대비 병력 모으기"

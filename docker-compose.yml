@@ -1,0 +1,29 @@
+version: "3.9"
+services:
+  vision:
+    build: ./vision
+    volumes:
+      - ./shared:/shared
+    env_file: [.env]
+    environment:
+      - MJPEG_URL=${MJPEG_URL}
+    command: ["python","vision_stream_tesseract.py"]
+
+  coach:
+    build: ./coach
+    env_file: [.env]
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./shared:/shared
+      - ./kb:/kb
+    command: ["python","run_coach.py"]
+
+  yt_ingest:
+    build: ./yt_ingest
+    env_file: [.env]
+    environment:
+      - YT_API_KEY=${YT_API_KEY}
+    volumes:
+      - ./kb:/kb
+    command: ["python","ingest_playlist.py","PLWQeRMoEALvo17hR-OBfldEN6gCFcA1wy"]
